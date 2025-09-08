@@ -1,0 +1,43 @@
+spring:
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:your-openai-api-key}
+      chat:
+        options:
+          model: gpt-4
+          temperature: 0.7
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: llama2
+
+langchain4j:
+  open-ai:
+    api-key: ${OPENAI_API_KEY:your-openai-api-key}
+    chat-model:
+      model-name: gpt-4
+      temperature: 0.7
+
+langsmith:
+  api-key: ${LANGSMITH_API_KEY:your-langsmith-api-key}
+  project-name: ${LANGSMITH_PROJECT:spring-ai-demo}
+  endpoint: ${LANGSMITH_ENDPOINT:https://api.smith.langchain.com}
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.example.springai: DEBUG
+    org.springframework.ai: DEBUG
+    dev.langchain4j: DEBUG

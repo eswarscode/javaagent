@@ -1,0 +1,136 @@
+# Production environment values for spring-ai-langchain
+
+replicaCount: 3
+
+image:
+  repository: spring-ai-langchain
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: docker-registry-secret
+
+service:
+  type: ClusterIP
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: spring-ai.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: spring-ai-tls
+      hosts:
+        - spring-ai.example.com
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 1000m
+    memory: 1Gi
+
+livenessProbe:
+  initialDelaySeconds: 120
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Pod disruption budget for high availability
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Anti-affinity for better availability
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - spring-ai-langchain
+        topologyKey: kubernetes.io/hostname
+
+# Spring profiles for production
+springProfiles: "prod,kubernetes"
+
+# Production configuration
+config:
+  openai:
+    # Use external secret in production
+    apiKey: ""  # Set via external secret manager
+    model: "gpt-4"
+    temperature: 0.7
+
+  langchain4j:
+    modelName: "gpt-4"
+    temperature: 0.7
+
+  langsmith:
+    # Use external secret in production
+    apiKey: ""  # Set via external secret manager
+    projectName: "spring-ai-prod"
+
+  ollama:
+    enabled: false  # Disable Ollama in production
+
+# Production logging
+logging:
+  level:
+    root: "WARN"
+    application: "INFO"
+    springAi: "INFO"
+    langchain4j: "INFO"
+
+# Production monitoring
+management:
+  health:
+    showDetails: "never"
+
+# Security context for production
+podSecurityContext:
+  runAsNonRoot: true
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+# Network policies
+networkPolicy:
+  enabled: true

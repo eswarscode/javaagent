@@ -1,0 +1,28 @@
+apiVersion: v2
+name: spring-ai-langchain
+description: A Helm chart for Spring AI application with LangChain, LangGraph, and LangSmith integration
+version: 0.1.0
+appVersion: "1.0.0"
+type: application
+
+keywords:
+  - spring-boot
+  - spring-ai
+  - langchain
+  - langgraph
+  - langsmith
+  - ai
+  - machine-learning
+
+maintainers:
+  - name: Spring AI Team
+    email: support@example.com
+
+sources:
+  - https://github.com/spring-projects/spring-ai
+  - https://github.com/langchain4j/langchain4j
+
+home: https://spring.io/projects/spring-ai
+
+annotations:
+  category: AI/ML

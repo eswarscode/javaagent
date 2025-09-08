@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "spring-ai-langchain.fullname" . }}-config
+  labels:
+    {{- include "spring-ai-langchain.labels" . | nindent 4 }}
+data:
+  application.yml: |
+    server:
+      port: {{ .Values.service.targetPort }}
+      shutdown: graceful
+    
+    spring:
+      lifecycle:
+        timeout-per-shutdown-phase: 30s
+      ai:
+        openai:
+          chat:
+            options:
+              model: {{ .Values.config.openai.model | quote }}
+              temperature: {{ .Values.config.openai.temperature }}
+        {{- if .Values.config.ollama.enabled }}
+        ollama:
+          chat:
+            options:
+              model: {{ .Values.config.ollama.model | quote }}
+        {{- end }}
+    
+    langchain4j:
+      open-ai:
+        chat-model:
+          model-name: {{ .Values.config.langchain4j.modelName | quote }}
+          temperature: {{ .Values.config.langchain4j.temperature }}
+    
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,info,metrics,prometheus
+      endpoint:
+        health:
+          show-details: {{ .Values.management.health.showDetails }}
+          probes:
+            enabled: true
+      health:
+        readinessstate:
+          enabled: true
+        livenessstate:
+          enabled: true
+      metrics:
+        export:
+          prometheus:
+            enabled: {{ .Values.metrics.prometheus.enabled }}
+    
+    logging:
+      level:
+        root: {{ .Values.logging.level.root }}
+        com.example.springai: {{ .Values.logging.level.application }}
+        org.springframework.ai: {{ .Values.logging.level.springAi }}
+        dev.langchain4j: {{ .Values.logging.level.langchain4j }}
+      pattern:
+        console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+        file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    
+    {{- if .Values.config.additionalConfig }}
+    {{- toYaml .Values.config.additionalConfig | nindent 4 }}
+    {{- end }}

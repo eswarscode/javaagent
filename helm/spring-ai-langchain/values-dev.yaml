@@ -1,0 +1,71 @@
+# Development environment values for spring-ai-langchain
+
+replicaCount: 1
+
+image:
+  repository: spring-ai-langchain
+  tag: "dev"
+  pullPolicy: Always
+
+service:
+  type: NodePort
+  nodePort: 30080
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: spring-ai-dev.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Spring profiles for development
+springProfiles: "dev,kubernetes"
+
+# Development configuration
+config:
+  openai:
+    # Set your OpenAI API key here or use external secret
+    apiKey: ""  # Replace with your dev API key
+    model: "gpt-3.5-turbo"  # Use cheaper model for dev
+    temperature: 0.8
+
+  langchain4j:
+    modelName: "gpt-3.5-turbo"
+    temperature: 0.8
+
+  langsmith:
+    # Set your LangSmith API key here or use external secret
+    apiKey: ""  # Replace with your dev API key
+    projectName: "spring-ai-dev"
+
+  ollama:
+    enabled: true
+    baseUrl: "http://ollama:11434"
+    model: "llama2"
+
+# Development logging
+logging:
+  level:
+    root: "INFO"
+    application: "DEBUG"
+    springAi: "DEBUG"
+    langchain4j: "DEBUG"
+
+# Enable autoscaling in dev for testing
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
